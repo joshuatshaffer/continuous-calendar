@@ -9,21 +9,14 @@ toSvg :: SvgElem -> String
 toSvg (Line x1 y1 x2 y2 isBold) = "<line x1=\"" ++ show x1 ++ "in\" y1=\"" ++ show y1 ++ "in\" x2=\"" ++ show x2 ++ "in\" y2=\"" ++ show y2 ++ "in\" style=\"stroke:black;stroke-width:" ++ (if isBold then "1" else "3") ++ "\" />"
 toSvg (Number x y n) = "<text x=\"" ++ show x ++ "in\" y=\"" ++ show y ++ "in\" >" ++ show n ++ "</text>"
 
-docWidth,docHeight :: Double
-docWidth = 6.5
-docHeight = 9
-dayWidth,dayHeight :: Double
-dayWidth = docWidth / 7
-dayHeight = docHeight / 6
-
 tomorrow,yesterday,nextWeek,lastWeek :: Day -> Day
 tomorrow = addDays 1
 yesterday = addDays (-1)
 nextWeek = addDays 7
 lastWeek = addDays (-7)
 
-daysOnPage :: Day -> [Day]
-daysOnPage = take (6*7) . iterate tomorrow
+daysOnPage :: Int -> Day -> [Day]
+daysOnPage numWeeks = take (numWeeks*7) . iterate tomorrow
 
 sameMonth :: Day -> Day -> Bool
 sameMonth x y = monthX == monthY
@@ -31,8 +24,8 @@ sameMonth x y = monthX == monthY
     (_,monthX,_) = toGregorian x
     (_,monthY,_) = toGregorian y
 
-dayBox :: Day -> (Double,Double) -> [SvgElem]
-dayBox d (x1,y1) = [top, bottom, left, right, num]
+dayBox :: Double -> Double -> Double -> Double -> Day -> [SvgElem]
+dayBox dayWidth dayHeight x1 y1 d = [top, bottom, left, right, num]
   where x2 = x1 + dayWidth
         y2 = y1 + dayHeight
         top    = Line x1 y1 x2 y1 (d `sameMonth` lastWeek d)
@@ -42,16 +35,25 @@ dayBox d (x1,y1) = [top, bottom, left, right, num]
         num = let (_,_,n) = toGregorian d
               in Number (x1 + 0.05) (y1 + 0.12) n
 
-dayPos :: Day -> Day -> (Double,Double)
-dayPos firstDay d = (x,y)
+dayPos :: Double -> Double -> Day -> Day -> (Double,Double)
+dayPos dayWidth dayHeight firstDay d = (x,y)
   where n = diffDays d firstDay
         x = fromInteger (n `mod` 7) * dayWidth
         y = fromInteger (n `div` 7) * dayHeight
 
-elemsOfPage :: [Day] -> [SvgElem]
-elemsOfPage days = concatMap (\d -> dayBox d $ dayPos (head days) d) days
+makeDay :: Double -> Double -> Day -> Day -> [SvgElem]
+makeDay dayWidth dayHeight firstDay d = dayBox dayWidth dayHeight x y d
+  where (x,y) = dayPos dayWidth dayHeight firstDay d
+
+makePage :: Double -> Double -> Int -> Day -> [SvgElem]
+makePage pageWidth pageHeight numWeeks firstDay = 
+  concatMap (makeDay dayWidth dayHeight firstDay) days
+  where
+    dayWidth = pageWidth / 7
+    dayHeight = pageHeight / fromIntegral numWeeks
+    days = daysOnPage numWeeks firstDay
 
 main :: IO ()
 main = do
-  let b = concatMap toSvg . elemsOfPage . daysOnPage $ fromGregorian 2017 9 10
+  let b = concatMap toSvg . makePage 6.5 9 6 $ fromGregorian 2017 9 10
   writeFile "cal.svg" $ "<svg height=\"9in\" width=\"6.5in\">" ++ b ++ "</svg>"
