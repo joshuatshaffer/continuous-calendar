@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for i in cal*.svg; do
+  inkscape --without-gui --export-pdf="${i%.svg}.pdf" $i
+done

@@ -28,7 +28,7 @@ dayBox dayWidth dayHeight x1 y1 d = [top, bottom, left, right, num]
         left   = Line x1 y1 x1 y2 (d `sameMonth` yesterday d)
         right  = Line x2 y1 x2 y2 (d `sameMonth` tomorrow d)
         num = let (_,_,n) = toGregorian d
-              in Number (x1 + 0.05) (y1 + 0.12) n
+              in Number (x1 + 3.6) (y1 + 24) n
 
 dayPos :: Double -> Double -> Day -> Day -> (Double,Double)
 dayPos dayWidth dayHeight firstDay d = (x,y)

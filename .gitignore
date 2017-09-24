@@ -1,1 +1,5 @@
-cal.svg
+cal*.svg
+cal*.pdf
+Main
+*.hi
+*.o
