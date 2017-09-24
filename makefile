@@ -1,3 +1,3 @@
 
 all:
-	runhaskell main.hs
+	runhaskell Main.hs

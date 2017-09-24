@@ -1,13 +1,8 @@
-module Main (main) where
 
-import Data.Time.Calendar
+module CalMake where
 
-data SvgElem = Line Double Double Double Double Bool
-             | Number Double Double Int
-
-toSvg :: SvgElem -> String
-toSvg (Line x1 y1 x2 y2 isBold) = "<line x1=\"" ++ show x1 ++ "in\" y1=\"" ++ show y1 ++ "in\" x2=\"" ++ show x2 ++ "in\" y2=\"" ++ show y2 ++ "in\" style=\"stroke:black;stroke-width:" ++ (if isBold then "1" else "3") ++ "\" />"
-toSvg (Number x y n) = "<text x=\"" ++ show x ++ "in\" y=\"" ++ show y ++ "in\" >" ++ show n ++ "</text>"
+import Data.Time.Calendar (Day,addDays,diffDays,toGregorian)
+import Svg (SvgElem(Line,Number))
 
 tomorrow,yesterday,nextWeek,lastWeek :: Day -> Day
 tomorrow = addDays 1
@@ -46,14 +41,9 @@ makeDay dayWidth dayHeight firstDay d = dayBox dayWidth dayHeight x y d
   where (x,y) = dayPos dayWidth dayHeight firstDay d
 
 makePage :: Double -> Double -> Int -> Day -> [SvgElem]
-makePage pageWidth pageHeight numWeeks firstDay = 
+makePage pageWidth pageHeight numWeeks firstDay =
   concatMap (makeDay dayWidth dayHeight firstDay) days
   where
     dayWidth = pageWidth / 7
     dayHeight = pageHeight / fromIntegral numWeeks
     days = daysOnPage numWeeks firstDay
-
-main :: IO ()
-main = do
-  let b = concatMap toSvg . makePage 6.5 9 6 $ fromGregorian 2017 9 10
-  writeFile "cal.svg" $ "<svg height=\"9in\" width=\"6.5in\">" ++ b ++ "</svg>"
